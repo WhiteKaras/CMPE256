@@ -7,12 +7,16 @@ Created on Wed Nov 14 21:49:13 2018
 
 import pandas as pd
 import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.model_selection import cross_validate
+import pickle
 
 ################
 #Global Setting#
 ################
 
-train = True
+run_valid = False
 
 ##########
 #function#
@@ -61,12 +65,32 @@ def main():
     for v in df:
         team.append(v[0:276])
         win.append(v[276])
+    
+    print('Data prepared!')
+    
+    team_sample = team[0:10000]
+    win_sample = win[0:10000]
 
+    # model choice
+    kNN = KNeighborsClassifier(n_neighbors=10, weights = 'distance')
+    svc = SVC(kernel='rbf')
+    
+    # final model decision
+    model = svc.fit(team, win)
+    
+    print('Model fit!')
+    
     # validation
-    if train:
-        print()
+    if run_valid:
+        print('Validation started!')
+        
+        print(np.average(cross_validate(model, team_sample, win_sample, cv=4, scoring='accuracy')['test_score']))
+        
+        print('Validation finished!')
+    
     # recommandation    
     else:
-        print()
+        print('Recommandation started!')
+        #model.fit(team, win)
     
 main()

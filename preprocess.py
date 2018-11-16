@@ -11,14 +11,15 @@ import pandas as pd
 #function#
 ##########
 # one hot encode for champ_id
-def champ_one_hot(l1,l2,team, result):
+def champ_one_hot(team_list,champ_id,team, old_result):
+    result = old_result.copy()
     if len(result)==0:
-        for v in l2:
+        for v in champ_id:
             result.append(0)
             result.append(0)
-    for v in l1:
-        for i in range(len(l2)):
-            if l2[i]==v:
+    for v in team_list:
+        for i in range(len(champ_id)):
+            if champ_id[i]==v:
                 if team == 'b':
                     result[i*2]=1
                 else:

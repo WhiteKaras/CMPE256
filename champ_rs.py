@@ -17,6 +17,7 @@ import pickle
 #Global Setting#
 ################
 
+fit_model = False
 run_valid = False
 
 ##########
@@ -145,22 +146,33 @@ def main():
     team_sample = team[0:10000]
     win_sample = win[0:10000]
 
-    # model choice
-    kNN = KNeighborsClassifier(n_neighbors=10, weights = 'uniform')
-    #svc = SVC(kernel='rbf')
+    if fit_model:
+        # model choice
+        kNN = KNeighborsClassifier(n_neighbors=20, weights = 'uniform')
+        #svc = SVC(kernel='rbf')
+        
+        # final model decision and save to pickle
+        #kNN.fit(team_sample, win_sample)
+        kNN.fit(team, win)
+        pickle.dump(kNN, open('saved_model/kNN_model.save', 'wb'))
     
-    # final model decision
-    kNN.fit(team_sample, win_sample)
+        print('Model fit and saved!')
+        
+        return
     
-    print('Model fit!')
+    # reload model from pickle to save time
+    kNN = pickle.load(open('saved_model/kNN_model.save', 'rb'))
+    
+    print('Model reloaded!')
     
     # validation
     if run_valid:
         print('Validation started!')
         
-        print(np.average(cross_validate(kNN, team_sample, win_sample, cv=4, scoring='accuracy')['test_score']))
+        print(np.average(cross_validate(kNN, team_sample, win_sample, cv=5, scoring='accuracy')['test_score']))
         
         print('Validation finished!')
+        
         return
     
     # BP recommendation    

@@ -5,6 +5,7 @@ Created on Wed Nov 14 21:49:13 2018
 @author: Karas
 """
 
+import random
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
@@ -38,6 +39,38 @@ def champ_one_hot(team_list,champ_id,team, old_result):
                 break
     return result
 
+# check if input is valid
+def valid_input(sentence, champ_dic, champ_pool):
+    while True:
+        champ_name = input(sentence)
+        if champ_name not in champ_dic:
+            print("Wrong champion name, please try again.")
+            continue
+        if champ_dic[champ_name] not in champ_pool:
+            print("This champion has been picked or banned, please try again.")
+            continue
+        return champ_name
+
+# print team info
+def print_info(blue_team, red_team, blue_ban, red_ban, champ_dic):
+    blue_info = []
+    for v in blue_team:
+        blue_info.append(champ_dic[v])
+    red_info = []
+    for v in red_team:
+        red_info.append(champ_dic[v])
+    print("\nBlue Team: "+str(blue_info))
+    print("Red Team: "+str(red_info))
+    print("Blue Ban: "+str(blue_ban))
+    print("Red Ban: "+str(red_ban)+'\n')
+    
+# make decision based on three different rs algorithm
+def champ_decision(kNN_result):
+    return kNN_result[0]
+
+##############
+#RS Algorithm#
+##############
 # kNN recommandation system, given current team stat, return top 5 choices
 def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic):
     # fixed team
@@ -136,22 +169,283 @@ def main():
     champ_pool = champ_id.copy()
     blue_team = []
     red_team = []
+    blue_ban = []
+    red_ban = []
+
+    while True:
+        team_side = input('Please enter your side (b/r): ')
+        if team_side != 'b' and team_side != 'r':
+            print('This is not a valid side, please try again.')
+            continue
+        break
     
-    champ_pool.remove(champ_dic['Vayne'])
-    
-    blue_team.append(champ_dic['Jax'])
-    blue_team.append(champ_dic['Sona'])
-    blue_team.append(champ_dic['Tristana'])
-    red_team.append(champ_dic['Varus'])
-    red_team.append(champ_dic['Fiora'])
-    red_team.append(champ_dic['Singed'])
-    
-    team_side = 'b'
-    
+    # player as blue team 
     if team_side == 'b':
-        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-    
+        # ban round
+        # b3 ban
+        ban = valid_input("Player B3 ban: ", champ_dic, champ_pool)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         
+        # r3 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player R3 ban: "+ban)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # b4 ban
+        ban = valid_input("Player B4 ban: ", champ_dic, champ_pool)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # r4 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player R4 ban: "+ban)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # b5 ban
+        ban = valid_input("Player B5 ban: ", champ_dic, champ_pool)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # r5 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player R5 ban: "+ban)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # pick round
+        # b1 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # highest win rate champ for the first pick
+        pick = 'Jax'
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B1' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r1 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R1 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r2 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R2 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b2 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B2' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b3 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B3' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r3 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R3 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r4 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R4 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b4 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B4' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b5 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B5' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r5 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R5 pick: "+pick)
+        input("Press enter to continue...")
+    
+    # player as red team    
+    else:
+        # ban round
+        # b3 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player B3 ban: "+ban)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # r3 ban
+        ban = valid_input("Player R3 ban: ", champ_dic, champ_pool)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # b4 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player B4 ban: "+ban)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # r4 ban
+        ban = valid_input("Player R4 ban: ", champ_dic, champ_pool)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # b5 ban: random
+        ban = champ_dic[random.choice(champ_pool)]
+        print("Player B5 ban: "+ban)
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # r5 ban
+        ban = valid_input("Player R5 ban: ", champ_dic, champ_pool)
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        
+        # pick round
+        # b1 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B1 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r1 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R1' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r2 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R2' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b2 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B2 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b3 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B3 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r3 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R3' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r4 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R4' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b4 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B4 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # b5 pick: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        pick = champ_dic[random.choice(champ_pool)]
+        blue_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player B5 pick: "+pick)
+        input("Press enter to continue...")
+        
+        # r5 pick
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        # rs algorithm
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        pick = champ_decision(kNN_result)
+        red_team.append(champ_dic[pick])
+        champ_pool.remove(champ_dic[pick])
+        print("Player R5' recommended pick: "+pick)
+        input("Press enter to continue...")
+        
+
+    print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)   
     print('Recommandation ended!')
     
 main()

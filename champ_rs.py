@@ -72,7 +72,7 @@ def champ_decision(kNN_result):
 ##############
 #RS Algorithm#
 ##############
-# kNN recommandation system, given current team stat, return top 5 choices
+# kNN recommendation system, given current team stat, return top 5 choices
 def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic):
     # fixed team
     current_team = champ_one_hot(blue_team, champ_id, 'b', [])
@@ -109,6 +109,91 @@ def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ
             champ_dic[rank[4][0]]]    
             
 
+# Synergy and Counter recommendation system, computing top 5 choices from Synergy and Counter scores
+def s_and_c_rs(blue_team, red_team, team_side):
+    sy_dict = np.load('./fea_data/heroes_synergies.npy')
+    ct_dict = np.load('./fea_data/heroes_counters.npy')
+
+    selected_heroes_dict = {}
+
+    for b in blue_team:
+        selected_heroes_dict[b] = True
+
+    for r in red_team:
+        selected_heroes_dict[r] = True
+
+    if team_side == 'b':
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, blue_team, red_team)
+    else:
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, red_team, blue_team)
+
+
+def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team):
+    hero_num = 138
+    overall_dict_list = []
+
+    for i in range(hero_num):
+        try:
+            selected_heroes_dict[i]
+        except:
+            hero_sy_dict = sy_dict[i]
+            hero_ct_dict = ct_dict[i]
+            hero_ave_sy_towards_join_team = 0
+            hero_ave_ct_towards_enemy_team = 0
+
+            for hero in join_team:
+                hero_ave_sy_towards_join_team += hero_sy_dict[hero]
+            hero_ave_sy_towards_join_team /= len(join_team)
+
+            for hero in enemy_team:
+                hero_ave_ct_towards_enemy_team += hero_ct_dict[hero]
+            hero_ave_ct_towards_enemy_team /= len(enemy_team)
+
+            hero_overall = hero_ave_sy_towards_join_team + hero_ave_ct_towards_enemy_team
+
+            hero_dict = {'overall_score': hero_overall, 'hero_index': i}
+
+            overall_dict_list.append(hero_dict)
+
+    overall_rank = sorted(overall_dict_list, key=lambda k: k['overall_score'])
+
+    return [overall_rank[-1],
+            overall_rank[-2],
+            overall_rank[-3],
+            overall_rank[-4],
+            overall_rank[-5]]
+
+
+# Synergy and Counter recommendation system, computing the overall best hero for initial default choice
+def s_and_c_overall_best():
+    sy_dict = np.load('./fea_data/heroes_synergies.npy')
+    ct_dict = np.load('./fea_data/heroes_counters.npy')
+
+    hero_num = 138
+    heroes_ave_sy = []
+    heroes_ave_ct = []
+    heroes_overall = []
+    best_overall_score = 0
+    best_overall_index = 0
+
+    for i in range(hero_num):
+        for j in range(hero_num):
+            heroes_ave_sy[i] += sy_dict[i][j]
+            heroes_ave_ct[i] += ct_dict[i][j]
+        heroes_ave_sy[i] = heroes_ave_sy[i]/(hero_num-1)
+        heroes_ave_ct[i] = heroes_ave_ct[i]/(hero_num-1)
+        heroes_overall[i] = heroes_ave_sy[i] + heroes_ave_ct[i]
+
+        if heroes_overall[i] > best_overall_score:
+            best_overall_score = heroes_overall[i]
+
+    for l in range(hero_num):
+        if heroes_overall[l] == best_overall:
+            best_overall_index = l
+
+    return best_overall_index
+
+
 ######                
 #main#    
 ######
@@ -120,11 +205,17 @@ def main():
         sep=',')
     # champ_id list
     champ_id = champ_df.id.tolist()
-    #  dictionary: champ name -> id and id -> name
+    # dictionary: champ name -> id and id -> name
     champ_dic = {}
+    # dictionary: champs.csv row num -> name and name -> champs.csv row num
+    champ_row_name_dic = {}
+    row_num = 0
     for index, row in champ_df.iterrows():
         champ_dic[row[0]] = row[1]
         champ_dic[row[1]] = row[0]
+        champ_row_name_dic[row_num] = row[0]
+        champ_row_name_dic[row[0]] = row_num
+        row_num += 1
     
     # read s8_champ_win_data.csv as nparray
     df = pd.read_csv(

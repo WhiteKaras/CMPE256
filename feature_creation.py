@@ -45,8 +45,10 @@ def generate_maps(data):
     compute_wining_rates(synergy, counter, 138)
     sy_mat, ct_mat = build_matrix(synergy, counter, 138)
 
-    np.savetxt('./fea_data/heroes_synergy.csv', sy_mat)
-    np.savetxt('./fea_data/heroes_counters.csv', ct_mat)
+    np.savetxt('./fea_data/heroes_synergies_readable.csv', sy_mat)
+    np.savetxt('./fea_data/heroes_counters_readable.csv', ct_mat)
+    np.save('./fea_data/heroes_synergies', sy_mat)
+    np.save('./fea_data/heroes_counters', ct_mat)
 
     logger.info("Synergy and Counter map created successfully!")
 

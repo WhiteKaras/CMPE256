@@ -232,6 +232,72 @@ def NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_d
     rank.sort(key=lambda v:v[1], reverse=True)
     return [champ_dic[rank[i][0]] for i in range(20)]   
 
+# SC predict
+def sv_predict(blue_team, red_team, champ_row_name_dic):
+    sy_dict = np.load('./fea_data/heroes_synergies.npy')
+    ct_dict = np.load('./fea_data/heroes_counters.npy')
+    
+    blue_team_score = 0
+    red_team_score = 0
+    
+    # calculate blue team score
+    for current_hero in blue_team:
+        hero_ave_sy_towards_join_team = 0
+        hero_ave_ct_towards_enemy_team = 0
+        
+        for hero in blue_team:
+            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 2
+            hero_ave_sy_towards_join_team /= 5
+    
+        for hero in red_team:
+            hero_ave_ct_towards_enemy_team += ct_dict[current_hero][hero]
+            hero_ave_ct_towards_enemy_team /= 5
+    
+        blue_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+        
+    # calculate red team score
+    for current_hero in red_team:
+        hero_ave_sy_towards_join_team = 0
+        hero_ave_ct_towards_enemy_team = 0
+        
+        for hero in red_team:
+            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 2
+            hero_ave_sy_towards_join_team /= 5
+    
+        for hero in blue_team:
+            hero_ave_ct_towards_enemy_team += ct_dict[current_hero][hero]
+            hero_ave_ct_towards_enemy_team /= 5
+    
+        red_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+
+    if blue_team_score>= red_team_score:
+        return 1
+    else:
+        return 0
+    
+# SC validation
+def sc_validation(X, y, champ_row_name_dic):
+    tp = 0
+    total = 0
+    for line in range(len(X)):
+        v = X[line]
+        r = y[line]
+        
+        # reformat X
+        blue_team = []
+        red_team = []
+        for i in range(len(v)):
+            if v[i] == 1 and i%2 == 0:
+                blue_team.append(i//2)
+            elif v[i] == 1:
+                red_team.append((i-1)//2)
+                
+        if sv_predict(blue_team, red_team, champ_row_name_dic) == r:
+            tp += 1
+        total += 1
+        
+    return tp/total
+
 ######                
 #main#    
 ######
@@ -278,10 +344,9 @@ def main():
     if fit_kNN_model:
         # model choice
         kNN = KNeighborsClassifier(n_neighbors=20, weights = 'uniform')
-        
-        # final model decision and save to pickle
-        #kNN.fit(team_sample, win_sample)
         kNN.fit(team, win)
+        
+        # save to pickle
         pickle.dump(kNN, open('saved_model/kNN_model.save', 'wb'))
     
         print('Model fit and saved!')
@@ -291,9 +356,9 @@ def main():
     if fit_NB_model:
         # model choice
         NB = GaussianNB()
-        
-        # final model decision and save to pickle
         NB.fit(team, win)
+        
+        # save to pickle
         pickle.dump(NB, open('saved_model/NB_model.save', 'wb'))
     
         print('Model fit and saved!')
@@ -310,6 +375,7 @@ def main():
         print('Validation started!')
         
         print('kNN: ', np.average(cross_validate(kNN, team_sample, win_sample, cv=5, scoring='accuracy')['test_score']))
+        print('SC: ', sc_validation(team, win, champ_row_name_dic))
         print('NB: ', np.average(cross_validate(NB, team, win, cv=5, scoring='accuracy')['test_score']))
         
         print('Validation finished!')

@@ -172,7 +172,7 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_r
                 hero_ave_ct_towards_enemy_team += hero_ct_dict[hero]
             hero_ave_ct_towards_enemy_team /= len(enemy_team)
 
-            hero_overall = hero_ave_sy_towards_join_team + hero_ave_ct_towards_enemy_team
+            hero_overall = hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
 
             hero_dict = {'overall_score': hero_overall, 'hero_index': i}
 

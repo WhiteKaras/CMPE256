@@ -66,8 +66,21 @@ def print_info(blue_team, red_team, blue_ban, red_ban, champ_dic):
     print("Red Ban: "+str(red_ban)+'\n')
     
 # make decision based on three different rs algorithm
-def champ_decision(kNN_result):
-    return kNN_result[0]
+def champ_decision(kNN_result, sc_result):
+    d = {}
+    # weigh to each rs list
+    weigh(d, kNN_result)
+    weigh(d, sc_result)
+        
+    return max(d, key=d.get)
+
+# weigh logic:  first place 1.8, last place 1.0
+def weigh(d, key):
+    for i in range(len(key)):
+        if key[i] not in d:
+            d[key[i]] = 2-0.2*i
+        else:
+            d[key[i]] += 2-0.2*i
 
 ##############
 #RS Algorithm#
@@ -361,12 +374,11 @@ def main():
         # b2 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
-        #kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_row_name_dic)
-        #print(kNN_result)
-        print(sc_result)
-        return
-        pick = champ_decision(kNN_result)
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B2' recommended pick: "+pick)
@@ -376,7 +388,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print(kNN_result)
+        print(sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B3' recommended pick: "+pick)
@@ -402,7 +417,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B4' recommended pick: "+pick)
@@ -412,7 +430,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B5' recommended pick: "+pick)
@@ -481,7 +502,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R1' recommended pick: "+pick)
@@ -491,7 +515,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R2' recommended pick: "+pick)
@@ -517,7 +544,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R3' recommended pick: "+pick)
@@ -527,7 +557,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R4' recommended pick: "+pick)
@@ -553,7 +586,10 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        pick = champ_decision(kNN_result)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
+        pick = champ_decision(kNN_result, sc_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R5' recommended pick: "+pick)

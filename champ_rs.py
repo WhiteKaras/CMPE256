@@ -180,8 +180,8 @@ def s_and_c_overall_best(champ_row_name_dic):
     hero_ave_ct = []
     heroes_overall = []
 
-    for i in range(hero_num):
-        for j in range(hero_num):
+    for i in range(len(sy_dict) if len(sy_dict) < len(ct_dict) else len(ct_dict)):
+        for j in range(len(sy_dict[i]) if len(sy_dict[i]) < len(ct_dict[i]) else len(ct_dict[i])):
             hero_ave_sy[i] += sy_dict[i][j]
             hero_ave_ct[i] += ct_dict[i][j]
         hero_ave_sy[i] = hero_ave_sy[i]/(hero_num-1)

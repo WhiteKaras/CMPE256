@@ -206,6 +206,7 @@ def s_and_c_overall_best(champ_row_name_dic):
             champ_row_name_dic[overall_rank[-6]['hero_index']],
             champ_row_name_dic[overall_rank[-7]['hero_index']]]
 
+
 # NB recommendation algorithm
 def NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic):
     # fixed team
@@ -230,7 +231,23 @@ def NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_d
         
     # return top score
     rank.sort(key=lambda v:v[1], reverse=True)
-    return [champ_dic[rank[i][0]] for i in range(20)]   
+    return [champ_dic[rank[i][0]] for i in range(20)]
+            
+
+# Winning rate predictor after both teams have been fulfilled
+def win_rate_predictor(blue_team, red_team, team_side, champ_dic, champ_row_name_dic):
+    b_team = []
+    r_team = []
+    sy_dict = np.load('./fea_data/heroes_synergies.npy')
+    ct_dict = np.load('./fea_data/heroes_counters.npy')
+    self_wrate = np.load('./fea_data/heroes_self_win_rate.npy')
+
+    for b in blue_team:
+        b_team.append(champ_row_name_dic[champ_dic[b]])
+
+    for r in red_team:
+        r_team.append(champ_row_name_dic[champ_dic[r]])
+
 
 # SC predict
 def sv_predict(blue_team, red_team, champ_row_name_dic):
@@ -737,29 +754,3 @@ def main():
     print('Recommandation ended!')
     
 main()
-
-'''
-def test():
-    champ_df = pd.read_csv(
-        filepath_or_buffer='ori_data/champs.csv',
-        header=0,
-        sep=',')
-    # champ_id list
-    champ_id = champ_df.id.tolist()
-    # dictionary: champ name -> id and id -> name
-    champ_dic = {}
-    # dictionary: champs.csv row num -> name and name -> champs.csv row num
-    champ_row_name_dic = {}
-    row_num = 0
-    for index, row in champ_df.iterrows():
-        champ_dic[row[0]] = row[1]
-        champ_dic[row[1]] = row[0]
-        champ_row_name_dic[row_num] = row[0]
-        champ_row_name_dic[row[0]] = row_num
-        row_num += 1
-
-    s_and_c_overall_best(champ_row_name_dic)
-
-
-test()
-'''

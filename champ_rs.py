@@ -366,9 +366,9 @@ def main():
         # b2 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
-        #kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
-        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_row_name_dic)
-        #print(kNN_result)
+        kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
+        print(kNN_result)
         print(sc_result)
         return
         pick = champ_decision(kNN_result)

@@ -176,25 +176,16 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_r
 
 # Synergy and Counter recommendation system, computing the overall best hero for initial default choice
 def s_and_c_overall_best(champ_row_name_dic):
-    sy_dict = np.load('./fea_data/heroes_synergies.npy')
-    ct_dict = np.load('./fea_data/heroes_counters.npy')
+    self_wrate = np.load('./fea_data/heroes_self_win_rate.npy')
 
     hero_num = 138
-    hero_ave_sy = 0
-    hero_ave_ct = 0
     heroes_overall = []
 
     for i in range(hero_num):
-        for j in range(hero_num):
-            hero_ave_sy += sy_dict[i][j]
-            hero_ave_ct += ct_dict[i][j]
-        hero_ave_sy = hero_ave_sy/(hero_num-1)
-        hero_ave_ct = hero_ave_ct/(hero_num-1)
-        hero_overall = hero_ave_sy + hero_ave_ct
-        hero_dict = {'overall_score': hero_overall, 'hero_index': i}
+        hero_dict = {'self_win_rate': self_wrate[i], 'hero_index': i}
         heroes_overall.append(hero_dict)
 
-    overall_rank = sorted(heroes_overall, key=lambda k: k['overall_score'])
+    overall_rank = sorted(heroes_overall, key=lambda k: k['self_win_rate'])
 
     return [champ_row_name_dic[overall_rank[-1]['hero_index']],
             champ_row_name_dic[overall_rank[-2]['hero_index']],
@@ -597,5 +588,5 @@ def test():
     s_and_c_overall_best(champ_row_name_dic)
 
 
-#test()
+test()
 '''

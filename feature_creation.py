@@ -13,8 +13,8 @@ def create_features():
     """
     pre_data = pd.read_csv('./pre_data/s8_champ_win_data.csv')
 
-    logger.info("This Data has %d matches", len(pre_data))
-    logger.info("Computing hero abilities map...")
+    logger.info("This data et has %d matches", len(pre_data))
+    logger.info("Computing hero synergy, counter, self_win_rate...")
 
     generate_maps(pre_data)
 
@@ -25,6 +25,7 @@ def generate_maps(data):
     """
     counter = dict()
     synergy = dict()
+    self_win = dict()
 
     # each hero has:
     # total wins number against other 137 heroes
@@ -39,21 +40,27 @@ def generate_maps(data):
     synergy['matches'] = np.zeros((138, 138))
     synergy['winrate'] = np.zeros((138, 138))
 
-    for instance in data.values:
-        build_dict(synergy, counter, instance)
+    self_win['wins'] = np.zeros(138)
+    self_win['matches'] = np.zeros(138)
+    self_win['winrate'] = np.zeros(138)
 
-    compute_wining_rates(synergy, counter, 138)
-    sy_mat, ct_mat = build_matrix(synergy, counter, 138)
+    for instance in data.values:
+        build_dict(synergy, counter, self_win, instance)
+
+    compute_wining_rates(synergy, counter, self_win, 138)
+    sy_mat, ct_mat, s_win_mat = build_matrix(synergy, counter, self_win, 138)
 
     np.savetxt('./fea_data/heroes_synergies_readable.csv', sy_mat)
     np.savetxt('./fea_data/heroes_counters_readable.csv', ct_mat)
+    np.savetxt('./fea_data/heroes_self_win_rate_readable.csv', s_win_mat)
     np.save('./fea_data/heroes_synergies', sy_mat)
     np.save('./fea_data/heroes_counters', ct_mat)
+    np.save('./fea_data/heroes_self_win_rate', s_win_mat)
 
     logger.info("Synergy and Counter map created successfully!")
 
 
-def build_dict(synergy, counter, match):
+def build_dict(synergy, counter, self_win, match):
     """
     fulfill synergy and counter dict with each historical match record
     """
@@ -74,6 +81,15 @@ def build_dict(synergy, counter, match):
     if len(r_team) == 5 and len(b_team) == 5:
         # go through a 5 vs 5 regular match of each hero team up/against each hero
         for i in range(5):
+            # for self win
+            self_win['matches'][b_team[i]] += 1
+            self_win['matches'][r_team[i]] += 1
+
+            if b_win == 1:
+                self_win['wins'][b_team[i]] += 1
+            else:
+                self_win['wins'][r_team[i]] += 1
+
             for j in range(5):
                 b_hero_i = b_team[i]
                 b_hero_j = b_team[j]
@@ -100,11 +116,12 @@ def build_dict(synergy, counter, match):
                     counter['wins'][r_hero_i, b_hero_j] += 1
 
 
-def compute_wining_rates(synergy, counter, heroes_num):
+def compute_wining_rates(synergy, counter, self_win, heroes_num):
     """
     Loop through synergy and counter dict and compute winning rate
     """
     for i in range(heroes_num):
+        self_win['winrate'][i] = self_win['wins'][i] / self_win['matches'][i] if self_win['matches'][i] != 0.0 else 0.0
         for j in range(heroes_num):
             if i != j:
                 if synergy['matches'][i, j] != 0:
@@ -114,27 +131,29 @@ def compute_wining_rates(synergy, counter, heroes_num):
                     counter['winrate'][i, j] = counter['wins'][i, j] / float(counter['matches'][i, j])
 
 
-def build_matrix(synergy, counter, heroes_num):
+def build_matrix(synergy, counter, self_win, heroes_num):
     """
     Loop through all combination of heroes to build score matrix for synergy and counter
     """
     sy_mat = np.zeros((heroes_num, heroes_num))
     ct_mat = np.zeros((heroes_num, heroes_num))
+    s_win_mat = np.zeros(heroes_num)
 
     for i in range(heroes_num):
+        s_win_mat[i] = self_win['winrate'][i]
         for j in range(heroes_num):
             if i != j:
                 if synergy['matches'][i, j] > 0:
-                    sy_mat[i, j] = synergy['winrate'][i, j]
+                    sy_mat[i, j] = synergy['winrate'][i, j]/(self_win['winrate'][i]+self_win['winrate'][j])
                 else:
                     sy_mat[i, j] = 0
 
                 if counter['matches'][i, j] > 0:
-                    ct_mat[i, j] = counter['winrate'][i, j]
+                    ct_mat[i, j] = counter['winrate'][i, j]/(self_win['winrate'][i]+1-self_win['winrate'][j])
                 else:
                     ct_mat[i, j] = 0
 
-    return sy_mat, ct_mat
+    return sy_mat, ct_mat, s_win_mat
 
 
 if __name__ == '__main__':

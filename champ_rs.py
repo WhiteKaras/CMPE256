@@ -291,6 +291,7 @@ def main():
     
     # player as blue team 
     if team_side == 'b':
+        '''
         # ban round
         # b3 ban
         ban = valid_input("Player B3 ban: ", champ_dic, champ_pool)
@@ -330,17 +331,25 @@ def main():
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        
+        '''
         # pick round
         # b1 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # highest win rate champ for the first pick
-        pick = 'Jax'
+        #'''
+        best = s_and_c_overall_best(champ_row_name_dic)
+        print(best)
+        for c in best:
+            if c in champ_pool:
+                pick = c
+                break
+        #'''
+        #pick = "Jax"
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B1' recommended pick: "+pick)
         input("Press enter to continue...")
-        
+        return
         # r1 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         pick = champ_dic[random.choice(champ_pool)]
@@ -361,11 +370,16 @@ def main():
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
+        #sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_row_name_dic)
+        print(kNN_result)
+        #print(sc_result)
         pick = champ_decision(kNN_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B2' recommended pick: "+pick)
         input("Press enter to continue...")
+        
+        return
         
         # b3 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)

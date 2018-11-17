@@ -110,25 +110,31 @@ def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ
             
 
 # Synergy and Counter recommendation system, computing top 5 choices from Synergy and Counter scores
-def s_and_c_rs(blue_team, red_team, team_side):
+def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_row_name_dic):
     sy_dict = np.load('./fea_data/heroes_synergies.npy')
     ct_dict = np.load('./fea_data/heroes_counters.npy')
 
     selected_heroes_dict = {}
 
     for b in blue_team:
-        selected_heroes_dict[b] = True
+        selected_heroes_dict[champ_row_name_dic[b]] = True
 
     for r in red_team:
-        selected_heroes_dict[r] = True
+        selected_heroes_dict[champ_row_name_dic[r]] = True
+
+    for b in blue_ban:
+        selected_heroes_dict[champ_row_name_dic[b]] = True
+
+    for r in red_ban:
+        selected_heroes_dict[champ_row_name_dic[r]] = True
 
     if team_side == 'b':
-        return top_5(selected_heroes_dict, sy_dict, ct_dict, blue_team, red_team)
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, blue_team, red_team, champ_row_name_dic)
     else:
-        return top_5(selected_heroes_dict, sy_dict, ct_dict, red_team, blue_team)
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, red_team, blue_team, champ_row_name_dic)
 
 
-def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team):
+def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_row_name_dic):
     hero_num = 138
     overall_dict_list = []
 
@@ -157,41 +163,42 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team):
 
     overall_rank = sorted(overall_dict_list, key=lambda k: k['overall_score'])
 
-    return [overall_rank[-1],
-            overall_rank[-2],
-            overall_rank[-3],
-            overall_rank[-4],
-            overall_rank[-5]]
+    return [champ_row_name_dic[overall_rank[-1]['hero_index']],
+            champ_row_name_dic[overall_rank[-2]['hero_index']],
+            champ_row_name_dic[overall_rank[-3]['hero_index']],
+            champ_row_name_dic[overall_rank[-4]['hero_index']],
+            champ_row_name_dic[overall_rank[-5]['hero_index']]]
 
 
 # Synergy and Counter recommendation system, computing the overall best hero for initial default choice
-def s_and_c_overall_best():
+def s_and_c_overall_best(champ_row_name_dic):
     sy_dict = np.load('./fea_data/heroes_synergies.npy')
     ct_dict = np.load('./fea_data/heroes_counters.npy')
 
     hero_num = 138
-    heroes_ave_sy = []
-    heroes_ave_ct = []
+    hero_ave_sy = []
+    hero_ave_ct = []
     heroes_overall = []
-    best_overall_score = 0
-    best_overall_index = 0
 
     for i in range(hero_num):
         for j in range(hero_num):
-            heroes_ave_sy[i] += sy_dict[i][j]
-            heroes_ave_ct[i] += ct_dict[i][j]
-        heroes_ave_sy[i] = heroes_ave_sy[i]/(hero_num-1)
-        heroes_ave_ct[i] = heroes_ave_ct[i]/(hero_num-1)
-        heroes_overall[i] = heroes_ave_sy[i] + heroes_ave_ct[i]
+            hero_ave_sy[i] += sy_dict[i][j]
+            hero_ave_ct[i] += ct_dict[i][j]
+        hero_ave_sy[i] = hero_ave_sy[i]/(hero_num-1)
+        hero_ave_ct[i] = hero_ave_ct[i]/(hero_num-1)
+        hero_overall = hero_ave_sy[i] + hero_ave_ct[i]
+        hero_dict = {'overall_score': hero_overall, 'hero_index': i}
+        heroes_overall.append(hero_dict)
 
-        if heroes_overall[i] > best_overall_score:
-            best_overall_score = heroes_overall[i]
+    overall_rank = sorted(heroes_overall, key=lambda k: k['overall_score'])
 
-    for l in range(hero_num):
-        if heroes_overall[l] == best_overall_score:
-            best_overall_index = l
-
-    return best_overall_index
+    return [champ_row_name_dic[overall_rank[-1]['hero_index']],
+            champ_row_name_dic[overall_rank[-2]['hero_index']],
+            champ_row_name_dic[overall_rank[-3]['hero_index']],
+            champ_row_name_dic[overall_rank[-4]['hero_index']],
+            champ_row_name_dic[overall_rank[-5]['hero_index']],
+            champ_row_name_dic[overall_rank[-6]['hero_index']],
+            champ_row_name_dic[overall_rank[-7]['hero_index']]]
 
 
 ######                

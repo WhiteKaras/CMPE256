@@ -62,7 +62,7 @@ def print_info(blue_team, red_team, blue_ban, red_ban, champ_dic):
     red_info = []
     for v in red_team:
         red_info.append(champ_dic[v])
-    print("\nBlue Team: "+str(blue_info))
+    print("Blue Team: "+str(blue_info))
     print("Red Team: "+str(red_info))
     print("Blue Ban: "+str(blue_ban))
     print("Red Ban: "+str(red_ban)+'\n')
@@ -77,18 +77,18 @@ def champ_decision(kNN_result, sc_result, NB_result):
         
     return max(d, key=d.get)
 
-# weigh logic:  first place 1.8, last place 1.0
+# weigh logic:  first place less than 2, last place 1.0
 def weigh(d, key):
     for i in range(len(key)):
         if key[i] not in d:
-            d[key[i]] = 2-0.2*i
+            d[key[i]] = 2-1/len(key)*i
         else:
-            d[key[i]] += 2-0.2*i
+            d[key[i]] += 2-1/len(key)*i
 
 ##############
 #RS Algorithm#
 ##############
-# kNN recommendation system, given current team stat, return top 5 choices
+# kNN recommendation system, given current team stat, return top choices
 def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic):
     # fixed team
     current_team = champ_one_hot(blue_team, champ_id, 'b', [])
@@ -116,16 +116,13 @@ def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ
         score /= len(k_list)
         rank.append((champ, score))
         
-    # return top 5 score
+    # return top score
     rank.sort(key=lambda v:v[1], reverse=True)
-    return [champ_dic[rank[0][0]],
-            champ_dic[rank[1][0]],
-            champ_dic[rank[2][0]],
-            champ_dic[rank[3][0]],
-            champ_dic[rank[4][0]]]    
+
+    return [champ_dic[rank[i][0]] for i in range(20)]
             
 
-# Synergy and Counter recommendation system, computing top 5 choices from Synergy and Counter scores
+# Synergy and Counter recommendation system, computing top choices from Synergy and Counter scores
 def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic):
     sy_dict = np.load('./fea_data/heroes_synergies.npy')
     ct_dict = np.load('./fea_data/heroes_counters.npy')
@@ -183,13 +180,9 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_r
 
             overall_dict_list.append(hero_dict)
 
-    overall_rank = sorted(overall_dict_list, key=lambda k: k['overall_score'])
+    overall_rank = sorted(overall_dict_list, key=lambda k: k['overall_score'], reverse=True)
 
-    return [champ_row_name_dic[overall_rank[-1]['hero_index']],
-            champ_row_name_dic[overall_rank[-2]['hero_index']],
-            champ_row_name_dic[overall_rank[-3]['hero_index']],
-            champ_row_name_dic[overall_rank[-4]['hero_index']],
-            champ_row_name_dic[overall_rank[-5]['hero_index']]]
+    return [champ_row_name_dic[overall_rank[i]['hero_index']] for i in range(20)]
 
 
 # Synergy and Counter recommendation system, computing the overall best hero for initial default choice
@@ -236,13 +229,9 @@ def NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_d
         else:
             rank.append((champ, NB.predict_log_proba([temp_team])[0][0]-NB.predict_log_proba([temp_team])[0][1]))
         
-    # return top 5 score
+    # return top score
     rank.sort(key=lambda v:v[1], reverse=True)
-    return [champ_dic[rank[0][0]],
-            champ_dic[rank[1][0]],
-            champ_dic[rank[2][0]],
-            champ_dic[rank[3][0]],
-            champ_dic[rank[4][0]]]    
+    return [champ_dic[rank[i][0]] for i in range(20)]
             
 
 # Winning rate predictor after both teams have been fulfilled
@@ -337,10 +326,8 @@ def main():
     if run_valid:
         print('Validation started!')
         
-        #print('kNN: ', np.average(cross_validate(kNN, team_sample, win_sample, cv=5, scoring='accuracy')['test_score']))
-        #print('NB: ', np.average(cross_validate(NB, team, win, cv=5, scoring='accuracy')['test_score']))
-        
-        #print(NB.predict_proba([team[0]]))
+        print('kNN: ', np.average(cross_validate(kNN, team_sample, win_sample, cv=5, scoring='accuracy')['test_score']))
+        print('NB: ', np.average(cross_validate(NB, team, win, cv=5, scoring='accuracy')['test_score']))
         
         print('Validation finished!')
         
@@ -362,63 +349,72 @@ def main():
             continue
         break
     
+    print("-----------------------------------")
     # player as blue team 
     if team_side == 'b':
-        '''
         # ban round
         # b3 ban
-        ban = valid_input("Player B3 ban: ", champ_dic, champ_pool)
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        ban = champ_dic[random.choice(champ_pool)]
         blue_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player B3 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r3 ban: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         ban = champ_dic[random.choice(champ_pool)]
-        print("Player R3 ban: "+ban)
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player R3 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
         # b4 ban
-        ban = valid_input("Player B4 ban: ", champ_dic, champ_pool)
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        ban = champ_dic[random.choice(champ_pool)]
         blue_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player B4 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r4 ban: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         ban = champ_dic[random.choice(champ_pool)]
-        print("Player R4 ban: "+ban)
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player R4 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
         # b5 ban
-        ban = valid_input("Player B5 ban: ", champ_dic, champ_pool)
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        ban = champ_dic[random.choice(champ_pool)]
         blue_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player B5 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r5 ban: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         ban = champ_dic[random.choice(champ_pool)]
-        print("Player R5 ban: "+ban)
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        '''
+        print("Player R5 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
+
         # pick round
         # b1 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         # highest win rate champ for the first pick
         best = s_and_c_overall_best(champ_row_name_dic)
-        print(best)
+        print('Top 7 champions: ', best)
         for c in best:
             if champ_dic[c] in champ_pool:
                 pick = c
                 break
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player B1' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer B1' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
 
         # r1 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -426,7 +422,7 @@ def main():
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R1 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # r2 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -434,7 +430,7 @@ def main():
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R2 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # b2 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -443,13 +439,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player B2' recommended pick: "+pick)
-        input("Press enter to continue...")       
+        print("\nPlayer B2' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")     
         
         # b3 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -458,13 +454,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player B3' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer B3' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r3 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -472,7 +468,7 @@ def main():
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R3 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # r4 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -480,7 +476,7 @@ def main():
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R4 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # b4 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -489,13 +485,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player B4' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer B4' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # b5 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -504,13 +500,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player B5' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer B5' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r5 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -518,51 +514,59 @@ def main():
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player R5 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
     
     # player as red team    
     else:
-        '''
         # ban round
-        # b3 ban: random
+        # b3 ban
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         ban = champ_dic[random.choice(champ_pool)]
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
         print("Player B3 ban: "+ban)
-        blue_ban.append(ban)
-        champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        input("Press enter to continue...\n-----------------------------------")
         
-        # r3 ban
-        ban = valid_input("Player R3 ban: ", champ_dic, champ_pool)
+        # r3 ban: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        ban = champ_dic[random.choice(champ_pool)]
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        print("Player R3 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
         
-        # b4 ban: random
+        # b4 ban
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
         ban = champ_dic[random.choice(champ_pool)]
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
         print("Player B4 ban: "+ban)
-        blue_ban.append(ban)
-        champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        input("Press enter to continue...\n-----------------------------------")
         
-        # r4 ban
-        ban = valid_input("Player R4 ban: ", champ_dic, champ_pool)
-        red_ban.append(ban)
-        champ_pool.remove(champ_dic[ban])
+        # r4 ban: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        
-        # b5 ban: random
         ban = champ_dic[random.choice(champ_pool)]
-        print("Player B5 ban: "+ban)
-        blue_ban.append(ban)
-        champ_pool.remove(champ_dic[ban])
-        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        
-        # r5 ban
-        ban = valid_input("Player R5 ban: ", champ_dic, champ_pool)
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
+        print("Player R4 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
+        
+        # b5 ban
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        '''
+        ban = champ_dic[random.choice(champ_pool)]
+        blue_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print("Player B5 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
+        
+        # r5 ban: random
+        print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
+        ban = champ_dic[random.choice(champ_pool)]
+        red_ban.append(ban)
+        champ_pool.remove(champ_dic[ban])
+        print("Player R5 ban: "+ban)
+        input("Press enter to continue...\n-----------------------------------")
+        
         # pick round
         # b1 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -570,7 +574,7 @@ def main():
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B1 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # r1 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -579,13 +583,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player R1' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer R1' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r2 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -594,13 +598,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player R2' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer R2' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # b2 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -608,7 +612,7 @@ def main():
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B2 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # b3 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -616,7 +620,7 @@ def main():
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B3 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # r3 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -625,13 +629,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player R3' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer R3' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # r4 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -640,13 +644,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player R4' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer R4' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
         # b4 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -654,7 +658,7 @@ def main():
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B4 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # b5 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -662,7 +666,7 @@ def main():
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
         print("Player B5 pick: "+pick)
-        input("Press enter to continue...")
+        input("Press enter to continue...\n-----------------------------------")
         
         # r5 pick
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
@@ -671,13 +675,13 @@ def main():
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
         NB_result = NB_rs(blue_team, red_team, team_side, champ_id, champ_pool, NB, win, champ_dic)
         print('kNN recommend list: ', kNN_result)
-        print('SC recommend list: ', sc_result)
-        print('NB recommend list: ', NB_result)
+        print('\nSC recommend list: ', sc_result)
+        print('\nNB recommend list: ', NB_result)
         pick = champ_decision(kNN_result, sc_result, NB_result)
         red_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
-        print("Player R5' recommended pick: "+pick)
-        input("Press enter to continue...")
+        print("\nPlayer R5' recommended pick: "+pick)
+        input("Press enter to continue...\n-----------------------------------")
         
 
     print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)   

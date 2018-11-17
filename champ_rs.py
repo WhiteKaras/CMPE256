@@ -161,16 +161,18 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_r
         except:
             hero_sy_dict = sy_dict[i]
             hero_ct_dict = ct_dict[i]
-            hero_ave_sy_towards_join_team = 0
-            hero_ave_ct_towards_enemy_team = 0
+            hero_ave_sy_towards_join_team = 1
+            hero_ave_ct_towards_enemy_team = 1
 
             for hero in join_team:
-                hero_ave_sy_towards_join_team += hero_sy_dict[hero]
-            hero_ave_sy_towards_join_team /= len(join_team)
+                hero_ave_sy_towards_join_team += hero_sy_dict[hero] + 2
+            if len(join_team)!= 0:
+                hero_ave_sy_towards_join_team /= len(join_team)
 
             for hero in enemy_team:
                 hero_ave_ct_towards_enemy_team += hero_ct_dict[hero]
-            hero_ave_ct_towards_enemy_team /= len(enemy_team)
+            if len(enemy_team)!= 0:
+                hero_ave_ct_towards_enemy_team /= len(enemy_team)
 
             hero_overall = hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
 
@@ -389,8 +391,8 @@ def main():
         # rs algorithm
         kNN_result = kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ_dic)
         sc_result = s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic)
-        print(kNN_result)
-        print(sc_result)
+        print('kNN recommend list: ', kNN_result)
+        print('SC recommend list: ', sc_result)
         pick = champ_decision(kNN_result, sc_result)
         blue_team.append(champ_dic[pick])
         champ_pool.remove(champ_dic[pick])
@@ -449,6 +451,7 @@ def main():
     
     # player as red team    
     else:
+        '''
         # ban round
         # b3 ban: random
         ban = champ_dic[random.choice(champ_pool)]
@@ -488,7 +491,7 @@ def main():
         red_ban.append(ban)
         champ_pool.remove(champ_dic[ban])
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)
-        
+        '''
         # pick round
         # b1 pick: random
         print_info(blue_team, red_team, blue_ban, red_ban, champ_dic)

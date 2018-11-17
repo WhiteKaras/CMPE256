@@ -188,7 +188,7 @@ def s_and_c_overall_best():
             best_overall_score = heroes_overall[i]
 
     for l in range(hero_num):
-        if heroes_overall[l] == best_overall:
+        if heroes_overall[l] == best_overall_score:
             best_overall_index = l
 
     return best_overall_index

@@ -110,17 +110,17 @@ def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ
             
 
 # Synergy and Counter recommendation system, computing top 5 choices from Synergy and Counter scores
-def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_row_name_dic):
+def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic):
     sy_dict = np.load('./fea_data/heroes_synergies.npy')
     ct_dict = np.load('./fea_data/heroes_counters.npy')
 
     selected_heroes_dict = {}
 
     for b in blue_team:
-        selected_heroes_dict[champ_row_name_dic[b]] = True
+        selected_heroes_dict[champ_row_name_dic[champ_dic[b]]] = True
 
     for r in red_team:
-        selected_heroes_dict[champ_row_name_dic[r]] = True
+        selected_heroes_dict[champ_row_name_dic[champ_dic[r]]] = True
 
     for b in blue_ban:
         selected_heroes_dict[champ_row_name_dic[b]] = True

@@ -113,13 +113,17 @@ def kNN_rs(blue_team, red_team, team_side, champ_id, champ_pool, kNN, win, champ
 def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, champ_row_name_dic):
     sy_dict = np.load('./fea_data/heroes_synergies.npy')
     ct_dict = np.load('./fea_data/heroes_counters.npy')
+    b_team = []
+    r_team = []
 
     selected_heroes_dict = {}
 
     for b in blue_team:
+        b_team.append(champ_row_name_dic[champ_dic[b]])
         selected_heroes_dict[champ_row_name_dic[champ_dic[b]]] = True
 
     for r in red_team:
+        r_team.append(champ_row_name_dic[champ_dic[r]])
         selected_heroes_dict[champ_row_name_dic[champ_dic[r]]] = True
 
     for b in blue_ban:
@@ -129,9 +133,9 @@ def s_and_c_rs(blue_team, red_team, team_side, blue_ban, red_ban, champ_dic, cha
         selected_heroes_dict[champ_row_name_dic[r]] = True
 
     if team_side == 'b':
-        return top_5(selected_heroes_dict, sy_dict, ct_dict, blue_team, red_team, champ_row_name_dic)
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, b_team, r_team, champ_row_name_dic)
     else:
-        return top_5(selected_heroes_dict, sy_dict, ct_dict, red_team, blue_team, champ_row_name_dic)
+        return top_5(selected_heroes_dict, sy_dict, ct_dict, r_team, b_team, champ_row_name_dic)
 
 
 def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_row_name_dic):

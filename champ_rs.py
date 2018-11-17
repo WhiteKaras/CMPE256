@@ -176,17 +176,17 @@ def s_and_c_overall_best(champ_row_name_dic):
     ct_dict = np.load('./fea_data/heroes_counters.npy')
 
     hero_num = 138
-    hero_ave_sy = []
-    hero_ave_ct = []
+    hero_ave_sy = 0
+    hero_ave_ct = 0
     heroes_overall = []
 
-    for i in range(len(sy_dict) if len(sy_dict) < len(ct_dict) else len(ct_dict)):
-        for j in range(len(sy_dict[i]) if len(sy_dict[i]) < len(ct_dict[i]) else len(ct_dict[i])):
-            hero_ave_sy[i] += sy_dict[i][j]
-            hero_ave_ct[i] += ct_dict[i][j]
-        hero_ave_sy[i] = hero_ave_sy[i]/(hero_num-1)
-        hero_ave_ct[i] = hero_ave_ct[i]/(hero_num-1)
-        hero_overall = hero_ave_sy[i] + hero_ave_ct[i]
+    for i in range(hero_num):
+        for j in range(hero_num):
+            hero_ave_sy += sy_dict[i][j]
+            hero_ave_ct += ct_dict[i][j]
+        hero_ave_sy = hero_ave_sy/(hero_num-1)
+        hero_ave_ct = hero_ave_ct/(hero_num-1)
+        hero_overall = hero_ave_sy + hero_ave_ct
         hero_dict = {'overall_score': hero_overall, 'hero_index': i}
         heroes_overall.append(hero_dict)
 
@@ -559,3 +559,29 @@ def main():
     print('Recommandation ended!')
     
 main()
+
+'''
+def test():
+    champ_df = pd.read_csv(
+        filepath_or_buffer='ori_data/champs.csv',
+        header=0,
+        sep=',')
+    # champ_id list
+    champ_id = champ_df.id.tolist()
+    # dictionary: champ name -> id and id -> name
+    champ_dic = {}
+    # dictionary: champs.csv row num -> name and name -> champs.csv row num
+    champ_row_name_dic = {}
+    row_num = 0
+    for index, row in champ_df.iterrows():
+        champ_dic[row[0]] = row[1]
+        champ_dic[row[1]] = row[0]
+        champ_row_name_dic[row_num] = row[0]
+        champ_row_name_dic[row[0]] = row_num
+        row_num += 1
+
+    s_and_c_overall_best(champ_row_name_dic)
+
+
+#test()
+'''

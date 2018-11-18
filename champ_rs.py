@@ -9,7 +9,8 @@ import random
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
+#from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 #from sklearn.svm import SVC
 from sklearn.model_selection import cross_validate
 import pickle
@@ -372,7 +373,7 @@ def main():
     
     if fit_NB_model:
         # model choice
-        NB = GaussianNB()
+        NB = MultinomialNB()
         NB.fit(team, win)
         
         # save to pickle

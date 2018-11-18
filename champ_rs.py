@@ -175,7 +175,8 @@ def top_5(selected_heroes_dict, sy_dict, ct_dict, join_team, enemy_team, champ_r
             if len(enemy_team)!= 0:
                 hero_ave_ct_towards_enemy_team /= len(enemy_team)
 
-            hero_overall = hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+            #hero_overall = hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+            hero_overall = hero_ave_ct_towards_enemy_team
 
             hero_dict = {'overall_score': hero_overall, 'hero_index': i}
 
@@ -264,14 +265,15 @@ def sv_predict(blue_team, red_team, champ_row_name_dic):
         hero_ave_ct_towards_enemy_team = 0
         
         for hero in blue_team:
-            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 2
+            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 9
             hero_ave_sy_towards_join_team /= 5
     
         for hero in red_team:
             hero_ave_ct_towards_enemy_team += ct_dict[current_hero][hero]
             hero_ave_ct_towards_enemy_team /= 5
     
-        blue_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+        #blue_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+        blue_team_score += hero_ave_ct_towards_enemy_team
         
     # calculate red team score
     for current_hero in red_team:
@@ -279,15 +281,16 @@ def sv_predict(blue_team, red_team, champ_row_name_dic):
         hero_ave_ct_towards_enemy_team = 0
         
         for hero in red_team:
-            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 2
+            hero_ave_sy_towards_join_team += sy_dict[current_hero][hero] + 9  
             hero_ave_sy_towards_join_team /= 5
     
         for hero in blue_team:
             hero_ave_ct_towards_enemy_team += ct_dict[current_hero][hero]
             hero_ave_ct_towards_enemy_team /= 5
     
-        red_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
-
+        #red_team_score += hero_ave_sy_towards_join_team * hero_ave_ct_towards_enemy_team
+        red_team_score += hero_ave_ct_towards_enemy_team
+        
     if blue_team_score>= red_team_score:
         return 1
     else:
